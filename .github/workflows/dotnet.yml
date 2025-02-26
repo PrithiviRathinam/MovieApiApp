@@ -1,0 +1,44 @@
+name: .NET Core CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest  # The machine that runs the pipeline, you can use windows-latest or macos-latest as well.
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set OMDB API Key
+      run: echo "OMDB_API_KEY=${{ secrets.OMDB_API_KEY }}" >> $GITHUB_ENV
+
+    - name: Set up .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '8.0'  
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --configuration Release
+
+    - name: Run tests
+      run: dotnet test --configuration Release
+
+    - name: Publish
+      run: dotnet publish --configuration Release --output ./out
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: api-artifact
+        path: ./out
